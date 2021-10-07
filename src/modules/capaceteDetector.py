@@ -6,8 +6,8 @@ class capaceteDetector():
         self.cfgPath = '/home/ekl/repo/OCR-Yolo/src/yoloModels/Capacete/yolov3-tiny_capacete.cfg'
         self.weightsPath = '/home/ekl/repo/OCR-Yolo/src/yoloModels/Capacete/yolov3-tiny_last_capacete.weights'
         self.namesPath = '/home/ekl/repo/OCR-Yolo/src/yoloModels/Capacete/obj.names'
-        self.CONF_THRESH = 0.9
-        self.NMS_THRESH = 0.1
+        self.CONF_THRESH = 0.4
+        self.NMS_THRESH = 0.4
         
         self.setIndex()
         self.loadNetwork()
@@ -30,7 +30,7 @@ class capaceteDetector():
 
     def detector(self, img):
         # Read and convert the image to blob and perform forward pass to get the bounding boxes with their confidence scores
-        img = cv2.imread(img)
+        #img = cv2.imread(img)
         height, width = img.shape[:2]
 
         blob = cv2.dnn.blobFromImage(img, 0.00392, (512, 288), swapRB=True, crop=False)
@@ -56,13 +56,16 @@ class capaceteDetector():
 
         # Perform non maximum suppression for the bounding boxes to filter overlapping and low confident bounding boxes
         indices = cv2.dnn.NMSBoxes(b_boxes, confidences, self.CONF_THRESH, self.NMS_THRESH).flatten().tolist()
-
+        
+        colors = np.random.uniform(0, 255, size=(len(self.classes), 3))
+        
         cropedImageList = list()
         for index in indices:
             x, y, w, h = b_boxes[index]
+            cv2.rectangle(img, (x, y), (x + w, y + h), colors[index], 2)
             cropedImageList.append(img[y:y + h, x:x + w])
 
-        return cropedImageList
+        return cropedImageList, img
 
 if __name__ == "__main__":
     img = '/home/ekl/repo/OCR-Yolo/src/modules/IMG_20211001_135513_1.jpg'
